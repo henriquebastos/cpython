@@ -387,10 +387,7 @@ def a85decode(b, *, foldspaces=False, adobe=False, ignorechars=b' \t\n\r\v'):
                 "Ascii85 encoded byte sequences must end "
                 "with {!r}".format(_A85END)
                 )
-        if b.startswith(_A85START):
-            b = b[2:-2]  # Strip off start/end markers
-        else:
-            b = b[:-2]
+        b = b[2:-2] if b.startswith(_A85START) else b[:-2]
     #
     # We have to go through this stepwise, so as to ignore spaces and handle
     # special short sequences
@@ -428,8 +425,7 @@ def a85decode(b, *, foldspaces=False, adobe=False, ignorechars=b' \t\n\r\v'):
             raise ValueError('Non-Ascii85 digit found: %c' % x)
 
     result = b''.join(decoded)
-    padding = 4 - len(curr)
-    if padding:
+    if padding := 4 - len(curr):
         # Throw away the extra padding
         result = result[:-padding]
     return result
@@ -523,7 +519,7 @@ def _input_type_check(s):
     try:
         m = memoryview(s)
     except TypeError as err:
-        msg = "expected bytes-like object, not %s" % s.__class__.__name__
+        msg = f"expected bytes-like object, not {s.__class__.__name__}"
         raise TypeError(msg) from err
     if m.format not in ('c', 'b', 'B'):
         msg = ("expected single byte elements, not %r from %s" %

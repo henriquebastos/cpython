@@ -52,13 +52,9 @@ def filter(names, pat):
     match = _compile_pattern(pat)
     if os.path is posixpath:
         # normcase on posix is NOP. Optimize it away from the loop.
-        for name in names:
-            if match(name):
-                result.append(name)
+        result.extend(name for name in names if match(name))
     else:
-        for name in names:
-            if match(os.path.normcase(name)):
-                result.append(name)
+        result.extend(name for name in names if match(os.path.normcase(name)))
     return result
 
 def fnmatchcase(name, pat):
@@ -88,7 +84,7 @@ def _translate(pat, STAR, QUESTION_MARK):
     i, n = 0, len(pat)
     while i < n:
         c = pat[i]
-        i = i+1
+        i += 1
         if c == '*':
             # compress consecutive `*` into one
             if (not res) or res[-1] is not STAR:
@@ -98,11 +94,11 @@ def _translate(pat, STAR, QUESTION_MARK):
         elif c == '[':
             j = i
             if j < n and pat[j] == '!':
-                j = j+1
+                j += 1
             if j < n and pat[j] == ']':
-                j = j+1
+                j += 1
             while j < n and pat[j] != ']':
-                j = j+1
+                j += 1
             if j >= n:
                 add('\\[')
             else:
@@ -119,8 +115,7 @@ def _translate(pat, STAR, QUESTION_MARK):
                         chunks.append(pat[i:k])
                         i = k+1
                         k = k+3
-                    chunk = pat[i:j]
-                    if chunk:
+                    if chunk := pat[i:j]:
                         chunks.append(chunk)
                     else:
                         chunks[-1] += '-'
@@ -144,7 +139,7 @@ def _translate(pat, STAR, QUESTION_MARK):
                     add('.')
                 else:
                     if stuff[0] == '!':
-                        stuff = '^' + stuff[1:]
+                        stuff = f'^{stuff[1:]}'
                     elif stuff[0] in ('^', '['):
                         stuff = '\\' + stuff
                     add(f'[{stuff}]')

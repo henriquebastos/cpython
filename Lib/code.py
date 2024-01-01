@@ -213,8 +213,8 @@ class InteractiveConsole(InteractiveInterpreter):
             sys.ps2
         except AttributeError:
             sys.ps2 = "... "
-        cprt = 'Type "help", "copyright", "credits" or "license" for more information.'
         if banner is None:
+            cprt = 'Type "help", "copyright", "credits" or "license" for more information.'
             self.write("Python %s on %s\n%s\n(%s)\n" %
                        (sys.version, sys.platform, cprt,
                         self.__class__.__name__))
@@ -246,10 +246,7 @@ class InteractiveConsole(InteractiveInterpreter):
         try:
             while True:
                 try:
-                    if more:
-                        prompt = sys.ps2
-                    else:
-                        prompt = sys.ps1
+                    prompt = sys.ps2 if more else sys.ps1
                     try:
                         line = self.raw_input(prompt)
                     except EOFError:
@@ -262,11 +259,10 @@ class InteractiveConsole(InteractiveInterpreter):
                     self.resetbuffer()
                     more = 0
                 except SystemExit as e:
-                    if self.local_exit:
-                        self.write("\n")
-                        break
-                    else:
+                    if not self.local_exit:
                         raise e
+                    self.write("\n")
+                    break
         finally:
             # restore exit and quit in builtins if they were modified
             if _exit is not None:
@@ -364,8 +360,5 @@ if __name__ == "__main__":
     parser.add_argument('-q', action='store_true',
                        help="don't print version and copyright messages")
     args = parser.parse_args()
-    if args.q or sys.flags.quiet:
-        banner = ''
-    else:
-        banner = None
+    banner = '' if args.q or sys.flags.quiet else None
     interact(banner)
